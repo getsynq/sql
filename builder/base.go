@@ -42,10 +42,10 @@ type TableExpr interface {
 }
 
 type LimitExpr struct {
-	rows IntLitExpr
+	rows *IntLitExpr
 }
 
-func Limit(rows IntLitExpr) *LimitExpr {
+func Limit(rows *IntLitExpr) *LimitExpr {
 	return &LimitExpr{rows}
 }
 

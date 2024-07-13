@@ -76,7 +76,7 @@ func (s *SqlSuite) TestBuilder() {
 
 		{
 			title:   "simple_with_limit",
-			q:       NewSelect().From(Sql("table")).Limit(Limit(*Int64(10))),
+			q:       NewSelect().From(Sql("table")).Limit(Limit(Int64(10))),
 			dialect: NewClickHouseDialect(),
 
 			expectedSql: "select * from table limit 10",
