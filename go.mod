@@ -3,6 +3,7 @@ module github.com/getsynq/sql
 go 1.21.6
 
 require (
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/samber/lo v1.44.0
 	github.com/stretchr/testify v1.9.0
 )
