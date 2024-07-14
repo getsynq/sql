@@ -342,6 +342,70 @@ func (s *SqlSuite) TestBuilder() {
 
 			expectedSql: "select * from table1 join table2 using (id)",
 		},
+
+		//
+		// SET
+		//
+
+		{
+			title: "union",
+			q: NewSelect().
+				From(Sql("table1")).
+				Union(NewSelect().From(Sql("table2"))),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "select * from table1 union select * from table2",
+		},
+
+		{
+			title: "union_all",
+			q: NewSelect().
+				From(Sql("table1")).
+				UnionAll(NewSelect().From(Sql("table2"))),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "select * from table1 union all select * from table2",
+		},
+
+		{
+			title: "intersect",
+			q: NewSelect().
+				From(Sql("table1")).
+				Intersect(NewSelect().From(Sql("table2"))),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "select * from table1 intersect select * from table2",
+		},
+
+		{
+			title: "except",
+			q: NewSelect().
+				From(Sql("table1")).
+				Except(NewSelect().From(Sql("table2"))),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "select * from table1 except select * from table2",
+		},
+
+		{
+			title: "intersect_all",
+			q: NewSelect().
+				From(Sql("table1")).
+				IntersectAll(NewSelect().From(Sql("table2"))),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "select * from table1 intersect all select * from table2",
+		},
+
+		{
+			title: "except_all",
+			q: NewSelect().
+				From(Sql("table1")).
+				ExceptAll(NewSelect().From(Sql("table2"))),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "select * from table1 except all select * from table2",
+		},
 	} {
 		if tt.skip {
 			continue

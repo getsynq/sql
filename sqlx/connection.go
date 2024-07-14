@@ -6,35 +6,33 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Connection = sqlx.DB
-
-type ConnectionOpt func(*Connection)
+type ConnectionOpt func(*sqlx.DB)
 
 func WithMaxOpenConns(n int) ConnectionOpt {
-	return func(c *Connection) {
+	return func(c *sqlx.DB) {
 		c.DB.SetMaxOpenConns(n)
 	}
 }
 
 func WithMaxIdleConns(n int) ConnectionOpt {
-	return func(c *Connection) {
+	return func(c *sqlx.DB) {
 		c.DB.SetMaxIdleConns(n)
 	}
 }
 
 func WithConnMaxLifetime(d time.Duration) ConnectionOpt {
-	return func(c *Connection) {
+	return func(c *sqlx.DB) {
 		c.DB.SetConnMaxLifetime(d)
 	}
 }
 
 func WithMaxIdleTime(d time.Duration) ConnectionOpt {
-	return func(c *Connection) {
+	return func(c *sqlx.DB) {
 		c.DB.SetConnMaxIdleTime(d)
 	}
 }
 
-func NewConnection(driver, uri string, opts ...ConnectionOpt) (*Connection, error) {
+func NewConnection(driver, uri string, opts ...ConnectionOpt) (*sqlx.DB, error) {
 	conn, err := sqlx.Open(driver, uri)
 	if err != nil {
 		panic(err)

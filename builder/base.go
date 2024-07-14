@@ -133,6 +133,8 @@ type Select struct {
 	limit   *LimitExpr
 	having  []CondExpr
 	cte     map[string]Expr
+
+	setOp *SetOpExpr
 }
 
 func NewSelect() *Select {
@@ -186,6 +188,36 @@ func (s *Select) Having(conds ...CondExpr) *Select {
 
 func (s *Select) Limit(limit *LimitExpr) *Select {
 	s.limit = limit
+	return s
+}
+
+func (s *Select) Union(right *Select) *Select {
+	s.setOp = NewSetOp(right, Union)
+	return s
+}
+
+func (s *Select) UnionAll(right *Select) *Select {
+	s.setOp = NewSetOp(right, UnionAll)
+	return s
+}
+
+func (s *Select) Intersect(right *Select) *Select {
+	s.setOp = NewSetOp(right, Intersect)
+	return s
+}
+
+func (s *Select) IntersectAll(right *Select) *Select {
+	s.setOp = NewSetOp(right, IntersectAll)
+	return s
+}
+
+func (s *Select) Except(right *Select) *Select {
+	s.setOp = NewSetOp(right, Except)
+	return s
+}
+
+func (s *Select) ExceptAll(right *Select) *Select {
+	s.setOp = NewSetOp(right, ExceptAll)
 	return s
 }
 
@@ -292,13 +324,25 @@ func (s *Select) ToSql(dialect Dialect) (string, error) {
 		limitSql,
 	}, func(s string, _ int) bool { return s != "" }), " ")
 
-	return fmt.Sprintf(`%s%s from %s`,
+	setOpSql := ""
+
+	if s.setOp != nil {
+		sql, err := s.setOp.ToSql(dialect)
+		if err != nil {
+			return "", err
+		}
+
+		setOpSql = " " + sql
+	}
+
+	return fmt.Sprintf(`%s%s from %s%s`,
 		cteSql,
 		buildListSegment("select", ", ", colsSql),
 		strings.Join(lo.Filter([]string{
 			tableSql,
 			controls,
 		}, func(s string, _ int) bool { return s != "" }), " "),
+		setOpSql,
 	), nil
 }
 
@@ -856,4 +900,50 @@ func (e *AggregationColumnReferenceExpr) ToSql(dialect Dialect) (string, error) 
 	refExpr := dialect.AggregationColumnReference(e.expression, e.alias)
 
 	return refExpr.ToSql(dialect)
+}
+
+type SetOpOperand int
+
+const (
+	Union SetOpOperand = iota
+	UnionAll
+	Intersect
+	IntersectAll
+	Except
+	ExceptAll
+)
+
+type SetOpExpr struct {
+	right   *Select
+	operand SetOpOperand
+}
+
+func NewSetOp(right *Select, operand SetOpOperand) *SetOpExpr {
+	return &SetOpExpr{right: right, operand: operand}
+}
+
+func (e *SetOpExpr) ToSql(dialect Dialect) (string, error) {
+	rightSql, err := e.right.ToSql(dialect)
+	if err != nil {
+		return "", err
+	}
+
+	var operand string
+	switch e.operand {
+	case Union:
+		operand = "union"
+	case UnionAll:
+		operand = "union all"
+	case Intersect:
+		operand = "intersect"
+	case IntersectAll:
+		operand = "intersect all"
+	case Except:
+		operand = "except"
+	case ExceptAll:
+		operand = "except all"
+	}
+
+	return fmt.Sprintf("%s %s", operand, rightSql), nil
+
 }
