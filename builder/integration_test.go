@@ -278,6 +278,26 @@ func (s *SqlSuite) TestBuilder() {
 			expectedSql: "with cte1 as (select * from table1), cte2 as (select * from cte1) select * from cte2",
 		},
 
+		{
+			title: "int_lit",
+			q: NewSelect().
+				From(Sql("table")).
+				Where(Eq(Sql("a"), Int64(1))),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "select * from table where a = 1",
+		},
+
+		{
+			title: "int_lit_int_8",
+			q: NewSelect().
+				From(Sql("table")).
+				Where(Eq(Sql("a"), Int64(int8(1)))),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "select * from table where a = 1",
+		},
+
 		//
 		// JOIN
 		//

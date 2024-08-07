@@ -673,12 +673,16 @@ func (e *StringLitExpr) IsTableExpr() {}
 // IntLitExpr
 //
 
+type Integer interface {
+	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64
+}
+
 type IntLitExpr struct {
 	val int64
 }
 
-func Int64(val int64) *IntLitExpr {
-	return &IntLitExpr{val: val}
+func Int64[T Integer](val T) *IntLitExpr {
+	return &IntLitExpr{val: int64(val)}
 }
 
 func (e *IntLitExpr) ToSql(dialect Dialect) (string, error) {
