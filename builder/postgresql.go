@@ -50,13 +50,13 @@ func (d *PostgresDialect) RoundTime(expr Expr, interval time.Duration) Expr {
 func (d *PostgresDialect) SubTime(expr Expr, duration time.Duration) Expr {
 	unit, interval := getTimeUnitWithInterval(duration)
 
-	return WrapSql("DATEADD(%s, %s, %s)", timeUnitSql(unit), Int64(-1*interval), expr)
+	return WrapSql("%s + '%s %s'", expr, Int64(-1*interval), timeUnitSql(unit))
 }
 
 func (d *PostgresDialect) AddTime(expr Expr, duration time.Duration) Expr {
 	unit, interval := getTimeUnitWithInterval(duration)
 
-	return WrapSql("DATEADD(%s, %s, %s)", timeUnitSql(unit), Int64(interval), expr)
+	return WrapSql("%s + '%s %s'", expr, Int64(interval), timeUnitSql(unit))
 }
 
 func (d *PostgresDialect) Regexp(expr Expr, pattern string) Expr {
