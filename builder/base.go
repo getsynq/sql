@@ -132,14 +132,14 @@ type Select struct {
 	orderBy []*OrderExpr
 	limit   *LimitExpr
 	having  []CondExpr
-	cte     []cteEntry
+	cte     []cte
 
 	setOp *SetOpExpr
 }
 
-type cteEntry struct {
-	alias      string
-	selectExpr Expr
+type cte struct {
+	alias string
+	query Expr
 }
 
 func NewSelect() *Select {
@@ -228,24 +228,24 @@ func (s *Select) ExceptAll(right *Select) *Select {
 
 // Deprecated: Use CteAppend or CtePrepend for explicit control over the position of the CTE.
 func (s *Select) Cte(alias string, selectExpr Expr) *Select {
-	s.cte = append(s.cte, cteEntry{alias: alias, selectExpr: selectExpr})
+	s.cte = append(s.cte, cte{alias: alias, query: selectExpr})
 	return s
 }
 
 func (s *Select) CteAppend(alias string, selectExpr Expr) *Select {
-	s.cte = append(s.cte, cteEntry{alias: alias, selectExpr: selectExpr})
+	s.cte = append(s.cte, cte{alias: alias, query: selectExpr})
 	return s
 }
 
 func (s *Select) CtePrepend(alias string, selectExpr Expr) *Select {
-	s.cte = append([]cteEntry{{alias: alias, selectExpr: selectExpr}}, s.cte...)
+	s.cte = append([]cte{{alias: alias, query: selectExpr}}, s.cte...)
 	return s
 }
 
 func (s *Select) CteInsertBefore(existingAlias string, alias string, selectExpr Expr) *Select {
 	for i, entry := range s.cte {
 		if entry.alias == existingAlias {
-			s.cte = append(s.cte[:i], append([]cteEntry{{alias: alias, selectExpr: selectExpr}}, s.cte[i:]...)...)
+			s.cte = append(s.cte[:i], append([]cte{{alias: alias, query: selectExpr}}, s.cte[i:]...)...)
 			return s
 		}
 	}
@@ -326,7 +326,7 @@ func (s *Select) ToSql(dialect Dialect) (string, error) {
 	if len(s.cte) > 0 {
 		cteSqls := []string{}
 		for _, entry := range s.cte {
-			selectSql, err := entry.selectExpr.ToSql(dialect)
+			selectSql, err := entry.query.ToSql(dialect)
 			if err != nil {
 				return "", err
 			}
