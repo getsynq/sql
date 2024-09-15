@@ -277,6 +277,36 @@ func (s *SqlSuite) TestBuilder() {
 
 			expectedSql: "with cte1 as (select * from table1), cte2 as (select * from cte1) select * from cte2",
 		},
+		{
+			title: "append_cte",
+			q: NewSelect().
+				Cte("cte1", NewSelect().From(Sql("table1"))).
+				CteAppend("cte2", NewSelect().From(Sql("cte1"))).
+				From(Sql("cte2")),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "with cte1 as (select * from table1), cte2 as (select * from cte1) select * from cte2",
+		},
+		{
+			title: "prepend_cte",
+			q: NewSelect().
+				Cte("cte2", NewSelect().From(Sql("cte1"))).
+				CtePrepend("cte1", NewSelect().From(Sql("table1"))).
+				From(Sql("cte2")),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "with cte1 as (select * from table1), cte2 as (select * from cte1) select * from cte2",
+		},
+		{
+			title: "insert_before_cte",
+			q: NewSelect().
+				Cte("cte2", NewSelect().From(Sql("cte1"))).
+				CteInsertBefore("cte2", "cte1", NewSelect().From(Sql("table1"))).
+				From(Sql("cte2")),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "with cte1 as (select * from table1), cte2 as (select * from cte1) select * from cte2",
+		},
 
 		{
 			title: "int_lit",
