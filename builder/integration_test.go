@@ -456,6 +456,20 @@ func (s *SqlSuite) TestBuilder() {
 
 			expectedSql: "select * from table1 except all select * from table2",
 		},
+
+		//
+		// SUBQUERY
+		//
+
+		{
+			title: "simple_subquery",
+			q: NewSelect().
+				From(Sql("table1")).
+				Where(Eq(Sql("a"), Subquery(NewSelect().From(Sql("table2")).Where(Eq(Sql("b"), Int64(1)))))),
+			dialect: NewClickHouseDialect(),
+
+			expectedSql: "select * from table1 where a = (select * from table2 where b = 1)",
+		},
 	} {
 		if tt.skip {
 			continue

@@ -997,3 +997,22 @@ func (e *SetOpExpr) ToSql(dialect Dialect) (string, error) {
 	return fmt.Sprintf("%s %s", operand, rightSql), nil
 
 }
+
+type SubqueryExpr struct {
+	q *Select
+}
+
+func Subquery(q *Select) *SubqueryExpr {
+	return &SubqueryExpr{q: q}
+}
+
+func (e *SubqueryExpr) ToSql(dialect Dialect) (string, error) {
+	selectSql, err := e.q.ToSql(dialect)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("(%s)", selectSql), nil
+}
+
+func (e *SubqueryExpr) IsTableExpr() {}
