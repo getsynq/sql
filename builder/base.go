@@ -146,9 +146,33 @@ func NewSelect() *Select {
 	return &Select{}
 }
 
+//
+// GETTERS
+//
+
+func (s *Select) GetTable() TableExpr {
+	return s.table
+}
+
+func (s *Select) GetCols() []Expr {
+	return s.cols
+}
+
+func (s *Select) GetJoins() []*JoinExpr {
+	return s.joins
+}
+
+func (s *Select) GetWhere() []CondExpr {
+	return s.where
+}
+
 func (s *Select) HasEmptyCols() bool {
 	return len(s.cols) == 0
 }
+
+//
+// BUILDERS
+//
 
 func (s *Select) From(table TableExpr) *Select {
 	s.table = table

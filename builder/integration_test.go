@@ -473,3 +473,28 @@ func (s *SqlSuite) TestBuilder() {
 		})
 	}
 }
+
+func (s *SqlSuite) TestGetters() {
+
+	q := NewSelect().
+		From(Sql("table")).
+		Cols(Sql("a")).
+		Where(Eq(Sql("b"), Int64(1)))
+
+	s.Run("get_table", func() {
+		require.Equal(s.T(), Sql("table"), q.GetTable())
+	})
+
+	s.Run("get_cols", func() {
+		require.Equal(s.T(), []Expr{Sql("a")}, q.GetCols())
+	})
+
+	s.Run("get_where", func() {
+		require.Equal(s.T(), []CondExpr{Eq(Sql("b"), Int64(1))}, q.GetWhere())
+	})
+
+	s.Run("has_empty_cols", func() {
+		require.False(s.T(), q.HasEmptyCols())
+	})
+
+}
